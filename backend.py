@@ -52,10 +52,10 @@ def load_transcript_from_youtube(url: str) -> list[Document]:
         transcript = api.fetch(video_id, languages=['de', 'en'])
         transcript_text = " ".join([item.text for item in transcript])
         print("-> Transkript erfolgreich geladen.")
-        docs = [Document(page_content=transcript_text, metadata={"source": YOUTUBE_URL})]
+        docs = [Document(page_content=transcript_text, metadata={"source": url})]
         return docs
     except TranscriptsDisabled:
-        print(f"FEHLER: Für das Video {YOUTUBE_URL} sind die Transkripte deaktiviert.")
+        print(f"FEHLER: Für das Video {url} sind die Transkripte deaktiviert.")
 
 # ==============================================================================
 # MODULE 2: INDEXING AND RETRIEVAL SETUP
@@ -169,6 +169,7 @@ def create_summarizer_chains(model, text_splitter): # <-- Pass in the text_split
 # This is where you orchestrate the calls to your modules.
 # ==============================================================================
 
+'''
 if __name__ == "__main__":
     # Load environment variables from .env
     load_dotenv()
@@ -177,7 +178,7 @@ if __name__ == "__main__":
     OPENAI_API_KEY = os.getenv("API_KEY")
     os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
     #YOUTUBE_URL = "https://www.youtube.com/watch?v=HfrCcKDzOow" 
-    YOUTUBE_URL = "https://www.youtube.com/watch?v=3FNZdixeuZw"
+    #YOUTUBE_URL = "https://www.youtube.com/watch?v=3FNZdixeuZw"
     
     # 1. Load the data
     documents = load_transcript_from_youtube(YOUTUBE_URL)
@@ -234,3 +235,44 @@ if __name__ == "__main__":
         
         #print("\n[Extracted Data]:")
         #print(extracted_data.model_dump())
+'''
+
+def create_extraction_chain(model):
+    """
+    Creates a chain that extracts structured entities from a transcript.
+    
+    Args:
+        model: The chat model to use for extraction.
+
+    Returns:
+        A runnable chain that outputs a Pydantic object.
+    """
+    parser = PydanticOutputParser(pydantic_object=VideoEntities)
+
+    prompt = ChatPromptTemplate.from_template(
+        """
+        Analyze the following video transcript and extract the key entities mentioned.
+        You must follow the formatting instructions precisely.
+
+        {format_instructions}
+
+        Video Transcript:
+        {transcript}
+        """,
+        partial_variables={"format_instructions": parser.get_format_instructions()},
+    )
+    
+    extraction_chain = (
+        {"transcript": RunnablePassthrough()}
+        | prompt
+        | model
+        | parser
+    )
+
+    return extraction_chain
+
+class VideoEntities(BaseModel):
+    """A structured representation of key entities mentioned in a video transcript."""
+    topics: List[str] = Field(description="A list of the main technical or conceptual topics discussed in the video.")
+    tools: List[str] = Field(description="A list of any software, libraries, or specific tools mentioned.")
+    people: List[str] = Field(description="A list of the names of any people mentioned in the video.")
