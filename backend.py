@@ -51,11 +51,11 @@ def load_transcript_from_youtube(url: str) -> list[Document]:
         api = YouTubeTranscriptApi()
         transcript = api.fetch(video_id, languages=['de', 'en'])
         transcript_text = " ".join([item.text for item in transcript])
-        print("-> Transkript erfolgreich geladen.")
+        print("-> Transcript loaded successfully.")
         docs = [Document(page_content=transcript_text, metadata={"source": url})]
         return docs
     except TranscriptsDisabled:
-        print(f"FEHLER: Für das Video {url} sind die Transkripte deaktiviert.")
+        print(f"Error: Transcripts seem to be disabled for the provided video.")
 
 # ==============================================================================
 # MODULE 2: INDEXING AND RETRIEVAL SETUP
@@ -169,73 +169,7 @@ def create_summarizer_chains(model, text_splitter): # <-- Pass in the text_split
 # This is where you orchestrate the calls to your modules.
 # ==============================================================================
 
-'''
-if __name__ == "__main__":
-    # Load environment variables from .env
-    load_dotenv()
 
-    # Access your API key
-    OPENAI_API_KEY = os.getenv("API_KEY")
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-    #YOUTUBE_URL = "https://www.youtube.com/watch?v=HfrCcKDzOow" 
-    #YOUTUBE_URL = "https://www.youtube.com/watch?v=3FNZdixeuZw"
-    
-    # 1. Load the data
-    documents = load_transcript_from_youtube(YOUTUBE_URL)
-    
-    # Only proceed if documents were loaded successfully
-    if documents:
-        # Get the full transcript text for our summarizers
-        full_transcript = " ".join([doc.page_content for doc in documents])
-
-        # --- Setup for Q&A ---
-        print("\n--- Setting up RAG for Q&A ---")
-        retriever = create_vector_retriever(documents)
-        qa_chain = create_rag_chain(retriever)
-
-        # --- Text Splitter ---
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-        splits = text_splitter.split_documents(documents)
-        
-        # --- NEW: Setup for Summarization ---
-        print("\n--- Setting up Summarizer Chains ---")
-        # We can create one model instance and share it
-        llm_model = ChatOpenAI(model="gpt-4o")
-        summarizers = create_summarizer_chains(llm_model, text_splitter)
-
-        # --- Setup for Extraction ---
-        print("\n--- Setting up Extraction Chain ---")
-        #extraction_chain = create_extraction_chain(llm_model)
-
-        # 4. Use the chains!
-        print("\n--- The YouTube Companion is ready! ---")
-        
-        # --- Example Q&A ---
-        print("\n--- Testing Q&A ---")
-        question = "What is ReAct?"
-        print(f"\n[Question]: {question}")
-        answer = qa_chain.invoke(question)
-        print(f"[Answer]: {answer}")
-
-        # --- NEW: Example Summaries ---
-        print("\n--- Testing Summaries ---")
-        
-        print("\n[Summary Type]: Map Reduce Summary")
-        map_reduce_summary_result = summarizers["map_reduce"].invoke(splits)
-        print(map_reduce_summary_result['output_text'])
-
-
-        print("\n[Summary Type]: Key Bullet Points")
-        bullet_summary = summarizers["bullets"].invoke(full_transcript)
-        print(bullet_summary)
-
-        # --- Example Extraction ---
-        #print("\n--- Testing Structured Data Extraction ---")
-        #extracted_data = extraction_chain.invoke(full_transcript)
-        
-        #print("\n[Extracted Data]:")
-        #print(extracted_data.model_dump())
-'''
 
 def create_extraction_chain(model):
     """
