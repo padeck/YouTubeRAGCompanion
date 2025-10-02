@@ -12,7 +12,11 @@ from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
 # --- LangChain Community/Partner Imports ---
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
+from youtube_transcript_api import (
+    YouTubeTranscriptApi,
+    TranscriptsDisabled,
+    NoTranscriptFound
+)
 from langchain_community.vectorstores import Chroma
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import (
@@ -132,7 +136,7 @@ class YouTubeProcessor:
                 ]
             print("-> Transcript loaded successfully.")
             return True
-        except TranscriptsDisabled:
+        except (TranscriptsDisabled, NoTranscriptFound):
             print("Error: Transcripts seem to be disabled"
                   " for the provided video.")
             return False
@@ -201,11 +205,9 @@ class YouTubeProcessor:
 
         # The map_reduce chain expects a list of documents.
         if summary_type == "map_reduce":
-            input_data = self.docs
-            result = chain.invoke({"input_documents": input_data})
+            result = chain.invoke({"input_documents": self.docs})
         else:
-            input_data = self.full_transcript_text
-            result = chain.invoke({input_data})
+            result = chain.invoke({self.docs})
 
         # The map_reduce chain returns a dict, others return a string
         if isinstance(result, dict):
