@@ -9,7 +9,7 @@ def render_qa_tab(processor: YouTubeProcessor):
     """Renders the Q&A tab UI and handles its logic."""
     st.header("Ask Questions About the Video")
     question = st.text_input("Your Question:", key="qa_question")
-    if st.button("Get Answer", key="qa_button"):
+    if st.button("Get Answer", key="qa_button", disabled=not question):
         if question:
             with st.spinner("Finding answer..."):
                 answer = processor.query(question)
@@ -68,7 +68,7 @@ def main():
         "Enter YouTube URL:", placeholder="https://www.youtube.com/..."
     )
 
-    if st.button("Process Video", key="process_button"):
+    if st.button("Process Video", key="process_button", disabled=not youtube_url):
         if youtube_url:
             with st.spinner(
                 "Fetching transcript and building vector index..."
