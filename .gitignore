@@ -1,4 +1,4 @@
 .env
 .vscode/settings.json
-__pycache__/backend.cpython-311.pyc
 .streamlit/secrets.toml
+*.pyc
