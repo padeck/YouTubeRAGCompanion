@@ -27,7 +27,8 @@ def render_summary_tab(processor: YouTubeProcessor):
         "Tweet Thread": "tweets",
     }
     summary_choice = st.selectbox("Choose summary type:",
-                                  summary_options.keys())
+                                  summary_options.keys(),
+                                  key="summary_choice")
 
     if st.button("Generate Summary", key="summary_button"):
         summary_type_key = summary_options[summary_choice]
@@ -89,14 +90,24 @@ def main():
 
     # Render UI tabs only if the processor object exists in the session state
     if st.session_state.processor:
-        q_and_a_tab, summary_tab, extraction_tab = st.tabs(
-            ["❓ Q&A", "📄 Summarizer", "📊 Data Extractor"]
+        view_options = ["❓ Q&A", "📄 Summarizer", "📊 Data Extractor"]
+        current_view = st.radio(
+            "Choose a feature",
+            options=view_options,
+            key="navigation",  # The key makes it stateful
+            horizontal=True,
+            label_visibility="collapsed"
         )
-        with q_and_a_tab:
+
+        # 2. Conditionally render the content based on the radio button's state
+        if current_view == "❓ Q&A":
             render_qa_tab(st.session_state.processor)
-        with summary_tab:
+
+        elif current_view == "📄 Summarizer":
+            # And make sure your render_summary_tab has the key in its selectbox
             render_summary_tab(st.session_state.processor)
-        with extraction_tab:
+
+        elif current_view == "📊 Data Extractor":
             render_extraction_tab(st.session_state.processor)
 
 
