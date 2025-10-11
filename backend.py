@@ -207,7 +207,7 @@ class YouTubeProcessor:
         if summary_type == "map_reduce":
             result = chain.invoke({"input_documents": self.docs})
         else:
-            result = chain.invoke({self.docs})
+            result = chain.invoke({self.full_transcript_text})
 
         # The map_reduce chain returns a dict, others return a string
         if isinstance(result, dict):
