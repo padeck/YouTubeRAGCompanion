@@ -30,8 +30,7 @@ Follow these steps to set up and run the project locally.
 ### 1. Prerequisites
 
 * Python 3.9+
-* An [OpenAI API Key](https://platform.openai.com/api-keys)
-* An [LangChain API Key](https://www.langchain.com/langchain)
+* LLaMa 3 running locally
 
 ### 2. Clone the Repository
 
