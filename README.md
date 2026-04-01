@@ -58,20 +58,7 @@ venv\Scripts\activate
 Install dependencies using pip:
 `pip install -r requirements.txt`
 
-### 5. Configure Your API Keys
-
-You need to provide your OpenAI API key, as well as your LangChain API key. The application is configured to look for it in an environment variable.
-
-Create a file named `secrets.toml` in a directory called `.streamlit` which should be placed in the root of the project.
-
-In the `secrets.toml`-file, provide both API keys as such:
-
-```bash
-OPENAI_API_KEY = "sk-..."
-LANGCHAIN_API_KEY = "..."
-```
-
-### 6. How to Run
+### 5. How to Run
 
 With your virtual environment activated and the `secrets.toml` file created, you can now run the Streamlit application:
 
@@ -81,25 +68,7 @@ streamlit run app.py
 
 Open your web browser and navigate to the local URL provided by Streamlit (usually <http://localhost:8501>).
 
-### 7. Project Structure
-
-```
-├── .streamlit/
-│ └──secrets.toml       # For storing local environment variables (API keys).
-├── app.py              # The main Streamlit frontend application.
-├── backend.py          # Core logic with the YouTubeProcessor class.
-├── prompts.py          # Contains all LLM prompt templates.
-├── README.md           # This markdown file
-└── requirements.txt    # List of Python dependencies.
-```
-
-* `app.py`: Handles all the user interface components using Streamlit. It takes user input (YouTube URL, questions), calls the backend processor, and displays the results
-
-* `backend.py`: Contains the YouTubeProcessor class, which encapsulates all the heavy lifting: fetching transcripts, creating the RAG pipeline, and defining the summarization and extraction chains
-
-* `prompts.py`: Separates the prompts from the application logic, making them easy to view and modify
-
-### 8. How it works (High Level)
+### 6. How it works (High Level)
 
 The application follows a standard RAG (Retrieval-Augmented Generation) pattern:
 
@@ -119,7 +88,7 @@ The application follows a standard RAG (Retrieval-Augmented Generation) pattern:
 
     * For Summarization & Extraction: The full transcript is passed to different, purpose-built LangChain chains that use specific prompts to either summarize the content or extract entities into a structured Pydantic model.
 
-### 9. How it works (Deep Dive)
+### 7. How it works (Deep Dive)
 
 The entire process can be broken down into two main phases: the **Indexing Phase** (processing the video) and the **Application Phase** (Q&A, Summarizing, etc.).
 
