@@ -62,6 +62,11 @@ def main():
     if st.button("Process Video", key="process_button", disabled=not youtube_url):
         if youtube_url:
             with st.spinner("Fetching transcript and building local vector index..."):
+                if st.session_state.processor and st.session_state.processor.vectorstore:
+                    try:
+                        st.session_state.processor.vectorstore.delete_collection()
+                    except Exception:
+                        pass
                 processor = YouTubeProcessor()
                 success = processor.load_video(youtube_url)
                 if success:
@@ -92,5 +97,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # Completely removed OpenAI API checks. Runs purely locally now.
     main()

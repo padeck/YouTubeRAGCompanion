@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+import uuid
 
 # --- Structured Output Parsers ---
 from pydantic import BaseModel, Field
@@ -32,11 +32,6 @@ from prompts import (
     TWEET_THREAD_PROMPT_TEMPLATE,
     ENTITY_EXTRACTION_PROMPT_TEMPLATE
 )
-
-# Load environment variables (for your API keys)
-load_dotenv()
-# Make sure you have OPENAI_API_KEY in your .env file or environment
-
 
 # ==============================================================================
 # 1. DATA STRUCTURES (Structured Output Schemas)
@@ -92,6 +87,7 @@ class YouTubeProcessor:
         # State variables that will be populated after loading a video
         self.docs: List[Document] = []
         self.retriever = None
+        self.vectorstore = None
         self.full_transcript_text: str = ""
 
     def load_video(self, url: str) -> bool:
@@ -159,13 +155,16 @@ class YouTubeProcessor:
         print(f"-> Transcript split into {len(splits)} chunks.")
 
         print("3. Creating embeddings and storing in Chroma vector database..")
+        collection_name = f"yt_video_{uuid.uuid4().hex}"
         # --- USE THE INSTANCE'S EMBEDDINGS ---
-        vectorstore = Chroma.from_documents(
-            documents=splits, embedding=self.embeddings
+        self.vectorstore = Chroma.from_documents(
+                    documents=splits, 
+                    embedding=self.embeddings,
+                    collection_name=collection_name
         )
         print("-> Vector database is ready.")
 
-        self.retriever = vectorstore.as_retriever()
+        self.retriever = self.vectorstore.as_retriever()
 
     def query(self, question: str) -> str:
         """
@@ -214,7 +213,7 @@ class YouTubeProcessor:
         if summary_type == "map_reduce":
             result = chain.invoke({"input_documents": self.docs})
         else:
-            result = chain.invoke({self.full_transcript_text})
+            result = chain.invoke(self.full_transcript_text)
 
         # The map_reduce chain returns a dict, others return a string
         if isinstance(result, dict):
