@@ -18,7 +18,8 @@ from youtube_transcript_api import (
     NoTranscriptFound
 )
 from langchain_community.vectorstores import Chroma
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
 from langchain_text_splitters import (
     RecursiveCharacterTextSplitter,
     TextSplitter
@@ -69,15 +70,21 @@ class YouTubeProcessor:
     """
     def __init__(
         self,
-        chat_model: ChatOpenAI = None,
-        embeddings_model: OpenAIEmbeddings = None,
+        chat_model: ChatOllama = None,  # Changed type hint
+        embeddings_model: OllamaEmbeddings = None,  # Changed type hint
         text_splitter: TextSplitter = None,
     ):
         """
         Initializes the processor with configurable LangChain components.
         """
-        self.model = chat_model or ChatOpenAI(model="gpt-4o")
-        self.embeddings = embeddings_model or OpenAIEmbeddings()
+        # For Ollama (easiest option):
+        self.model = chat_model or ChatOllama(
+            model="llama3",  # or "llama2", "mistral", etc.
+            temperature=0.7
+        )
+        self.embeddings = embeddings_model or OllamaEmbeddings(
+            model="nomic-embed-text"  # or "nomic-embed-text" for better embeddings
+        )
         self.text_splitter = text_splitter or RecursiveCharacterTextSplitter(
             chunk_size=1000, chunk_overlap=100
         )
@@ -292,50 +299,3 @@ class YouTubeProcessor:
             | parser
         )
 
-# ==============================================================================
-# 3. MAIN EXECUTION SCRIPT
-# ==============================================================================
-
-
-def main():
-    """
-    Main function to demonstrate the YouTubeProcessor's capabilities.
-    """
-    # URL of a video to analyze (e.g., a short LangChain tutorial)
-    YOUTUBE_URL = "https://www.youtube.com/watch?v=sY6pI1S0de8"
-
-    # 1. Initialize the processor
-    processor = YouTubeProcessor()
-
-    # 2. Load the video (this also creates the retriever)
-    if not processor.load_video(YOUTUBE_URL):
-        print("Exiting due to failure in video processing.")
-        return
-
-    # 3. Perform RAG-based Q&A
-    question = "What is LCEL?"
-    answer = processor.query(question)
-    print("\n--- RAG Answer ---")
-    print(f"Q: {question}\nA: {answer}")
-    print("-" * 20)
-
-    # 4. Generate Summaries
-    bullet_summary = processor.summarize("bullets")
-    print("\n--- Bullet Point Summary ---")
-    print(bullet_summary)
-    print("-" * 20)
-
-    # 5. Extract Structured Entities
-    entities = processor.extract_entities()
-    print("\n--- Extracted Entities ---")
-    if isinstance(entities, VideoEntities):
-        print(f"Topics: {entities.topics}")
-        print(f"Tools: {entities.tools}")
-        print(f"People: {entities.people}")
-    else:
-        print(entities)  # Print error message if it failed
-    print("-" * 20)
-
-
-if __name__ == "__main__":
-    main()
